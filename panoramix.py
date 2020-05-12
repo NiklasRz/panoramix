@@ -98,7 +98,7 @@ addr_shortcuts = {
 """
 
 
-def decompile(this_addr, only_func_name=None):
+def decompile(this_addr, code, only_func_name=None):
 
     """
 
@@ -173,7 +173,7 @@ def decompile(this_addr, only_func_name=None):
     """
 
     loader = Loader()
-    loader.load(this_addr)
+    loader.load(this_addr, code)
     loader.run(VM(loader, just_fdests=True))
 
     if len(loader.lines) == 0:
@@ -410,75 +410,3 @@ def decompile(this_addr, only_func_name=None):
     if "--silent" not in sys.argv:
         print("\n")
         print(open(this_fname).read())
-
-
-def decompile_bulk(addr_list):
-    i = 0
-    for addr in addr_list:
-        i += 1
-        print(f"{i}, {addr}")
-        decompile(addr)
-
-
-"""
-
-    Command line initialisation
-
-"""
-
-bulk_list = None
-function_name = None
-
-if len(sys.argv) == 1:
-    print(
-        f"""
-    python3 panoramix.py [address|shortcut|stdin] [func_name] [--verbose] [--silent]
-
-        address: {C.gray}e.g. 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d
-                 you can provide multiple, separating with comma{C.end}
-
-        shortcut: {C.gray}e.g. kitties, unicorn, solidstamp{C.end}
-        stdin: {C.gray}bytecode from stdin{C.end}
-
-        --silent: {C.gray}writes output only to the ./cache_pan/ directory{C.end}
-
-    """
-    )
-
-    exit()
-
-if sys.argv[1] == "stdin":
-    body_full = sys.stdin.read().strip()
-    if not os.path.isdir("cache_stdin"):
-        os.mkdir("cache_stdin")
-
-    this_addr = None
-    bulk_list = []
-    for body in body_full.split(" "):
-
-        addr = hex(abs(hash(body)))
-
-        fname = f"cache_stdin/{addr}.bin"
-        bulk_list.append(addr)
-
-        with open(fname, "w") as f:
-            f.write(body)
-
-    decompile_bulk(bulk_list)
-
-elif "," in sys.argv[1]:
-    decompile_bulk(sys.argv[1].split(","))
-
-else:
-    this_addr = sys.argv[1]
-
-    if this_addr.lower() in addr_shortcuts:
-        this_addr = addr_shortcuts[this_addr.lower()]
-
-    if len(sys.argv) > 2:
-        if not sys.argv[2].startswith("--"):
-            function_name = sys.argv[2]
-        else:
-            function_name = None
-
-    decompile(this_addr, function_name)

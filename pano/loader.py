@@ -94,7 +94,7 @@ class Loader(EasyCopy):
 
     def load(self, this_addr):
         if len(this_addr) > 30:
-            self.load_addr(this_addr)
+            self.load_addr(this_addr, code)
         else:
             self.load_stdin(this_addr)
 
@@ -110,7 +110,7 @@ class Loader(EasyCopy):
 
         self.load_binary(code)
 
-    def load_addr(self, address):
+    def load_addr(self, address, code):
         if address == address.lower():
             logger.warning(
                 "Address not checksummed. Fixed, but needed to import web3 (+0.6s exec time)"
@@ -146,9 +146,7 @@ class Loader(EasyCopy):
         else:
             logger.info("Fetching code for %s...", address)
 
-            code = ""
             for network in "mainnet", "goerli", "ropsten", "kovan", "rinkeby":
-                code = code_fetch(address, network)
                 if len(code) > 0:
                     self.network = network
                     break
